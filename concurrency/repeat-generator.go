@@ -1,26 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
+// From <<concurrency in Go>>
 func main() {
-	repeat := func(done <-chan interface{}, values ...interface{}) <-chan interface{} {
+
+	repeat := func(done <-chan interface{}, fn func() interface{}) <-chan interface{} {
 		valueStream := make(chan interface{})
 		go func() {
 			defer close(valueStream)
 			for {
-				for _, v := range values {
-					select {
-					case <-done:
-						return
-					case valueStream <- v:
-					}
+				select {
+				case <-done:
+					return
+				case valueStream <- fn():
 				}
 			}
 		}()
 		return valueStream
 	}
-	take := func(done <-chan interface{}, valueStream <-chan interface{}, num int) <-chan interface{} {
 
+	take := func(done <-chan interface{}, valueStream <-chan interface{}, num int) <-chan interface{} {
 		takeStream := make(chan interface{})
 		go func() {
 			defer close(takeStream)
@@ -37,8 +40,9 @@ func main() {
 
 	done := make(chan interface{})
 	defer close(done)
-
-	for num := range take(done, repeat(done, 1), 10) {
-		fmt.Printf("%v ", num)
+	for num := range take(done, repeat(done, func() interface{} {
+		return rand.Int()
+	}), 10) {
+		fmt.Println(num)
 	}
 }
