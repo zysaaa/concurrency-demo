@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -10,16 +9,8 @@ import (
 )
 
 func main() {
-	verbose := flag.Bool("v", false, "show verbose progress messages")
-	flag.Parse()
-	roots := flag.Args()
-	if len(roots) == 0 {
-		roots = []string{"."}
-	}
-	tick := make(<-chan time.Time)
-	if *verbose {
-		tick = time.Tick(1500 * time.Millisecond)
-	}
+	roots := []string{"/"}
+	tick := time.Tick(1500 * time.Millisecond)
 	wg := sync.WaitGroup{}
 	fileSize := make(chan int64)
 	for _, root := range roots {
